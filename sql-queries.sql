@@ -51,10 +51,10 @@ GROUP BY CustomerType;
 
 -- Monthly growth rate
 SELECT Month,
-       (SUM(Quantity * Price) - LAG(SUM(Quantity * Price)) OVER (ORDER BY Month)) /
-       LAG(SUM(Quantity * Price)) OVER (ORDER BY Month) * 100 AS MonthlyGrowthRate
+       (MonthlySales - LAG(MonthlySales) OVER (ORDER BY Month)) /
+       LAG(MonthlySales) OVER (ORDER BY Month) * 100 AS MonthlyGrowthRate
 FROM (
-  SELECT EXTRACT(YEAR_MONTH FROM Date) AS Month,
+  SELECT DATE_TRUNC(Date, MONTH) AS Month,
          SUM(Quantity * Price) AS MonthlySales
   FROM `your-project.sales_dataset.sales_data`
   GROUP BY Month
@@ -65,9 +65,8 @@ ORDER BY Month;
 SELECT AVG(DaysBetweenOrders) AS AvgPurchaseFrequency
 FROM (
   SELECT Customer,
-         DATE_DIFF(MIN(Date), LAG(Date) OVER (PARTITION BY Customer ORDER BY Date), DAY) AS DaysBetweenOrders
+         DATE_DIFF(Date, LAG(Date) OVER (PARTITION BY Customer ORDER BY Date), DAY) AS DaysBetweenOrders
   FROM `your-project.sales_dataset.sales_data`
-  GROUP BY Customer, Date
 )
 WHERE DaysBetweenOrders IS NOT NULL;
 
